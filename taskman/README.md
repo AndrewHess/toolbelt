@@ -41,13 +41,6 @@ You can also provide an awk-style search condition to only show tasks that match
 - **Set tags on a task**: Use `set <tagname> <task number 1> <task number 2> ...` to add a tag to one or more items; for example: `set @done 42 100` will append `@done` to tasks 42 and 100.
 - **Show command history**: `history` shows the full history of Taskman commands you've run.
 - **Quit**: `quit` exits Taskman.
-```text
-list: (an optional awk-style search condition)
-        "add "*)
-        "set "*)
-        "history")
-        "quit")
-```
 
 ### Tips
 - Backwards searching is supported with ctrl+r, just like in bash.

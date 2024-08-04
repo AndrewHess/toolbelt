@@ -29,6 +29,16 @@ python3 timelog.py -q /path/to/timelog.txt
 The `-q` flag specifies to output aggregated data for today, this week, and this month.
 Use the `-h` flag to see all the options.
 
+For the above example, running the script would output this for the `today` section:
+```text
+Today
+---------------------------------------------
+Lunch               : 46 minutes
+Work                : 8 hours and 7 minutes
+Work.Meeting        : 22 minutes
+Work.SpecialProject : 1 hour and 17 minutes
+```
+
 ## Tips
 - Make an easy way to add a timestamp to your timelog.
 In nvim, you can use a mapping like this:
