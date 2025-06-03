@@ -44,6 +44,12 @@ def parse_command_line_args():
     # Quick view option
     parser.add_argument("-q", "--quick", action="store_true", help="Show quick summary for today, this week, and this month")
 
+    # Show only the total, only for the given task
+    parser.add_argument("--only", type=str, help="Show only total duration for specified task")
+
+    # Brief format option
+    parser.add_argument("-b", "--brief", action="store_true", help="Show '2h 30m' instead of '2 hours and 30 minutes'")
+
     args = parser.parse_args()
     if args.quick:
         args.today = True
@@ -124,9 +130,12 @@ def split_hierarchical(s, separator):
     return [separator.join(parts[:i+1]) for i in range(len(parts))]
 
 
-def format_duration(seconds):
+def format_duration(seconds, brief=False):
     hours, remainder = divmod(int(seconds), 3600)
     minutes, _ = divmod(remainder, 60)
+
+    if brief:
+        return f"{hours}h {minutes}m"
 
     parts = []
     if hours > 0:
@@ -176,23 +185,30 @@ def get_date_ranges(args):
     return ranges
 
 
-def summarize_data(start, end, filename):
-    result_lines = []
-
+def summarize_data(start, end, filename, only_task=None, brief_format=False):
     activities = parse_timelog(filename)
     durations = calculate_durations(get_activities_in_range(activities, start, end))
 
-    # Filter out 'Done' and sort activities alphabetically
-    sorted_activities = sorted([activity for activity in durations.keys() if activity != 'Done'])
+    # Filter out 'Done'
+    filtered_durations = {k: v for k, v in durations.items() if k != 'Done'}
 
-    if len(sorted_activities) == 0:
+    # Show only specified task total
+    if only_task:
+        if only_task in filtered_durations:
+            return format_duration(filtered_durations[only_task], brief_format)
+        else:
+            return format_duration(0, brief_format)
+
+    if len(filtered_durations) == 0:
         return "No entries"
 
-    # Calculate max length for alignment
+    # Show all tasks
+    sorted_activities = sorted(filtered_durations.keys())
     max_activity_length = max(len(activity) for activity in sorted_activities)
 
+    result_lines = []
     for activity in sorted_activities:
-        result_lines.append(f"{activity:<{max_activity_length}} : {format_duration(durations[activity])}")
+        result_lines.append(f"{activity:<{max_activity_length}} : {format_duration(filtered_durations[activity], brief_format)}")
 
     return "\n".join(result_lines)
 
@@ -203,10 +219,13 @@ def main(filename):
 
     for i, date_range in enumerate(date_ranges):
         title, start, end = date_range
-        print(f"{title}")
-        print(f"---------------------------------------------")
-        print(f"{summarize_data(start, end, args.file)}")
-        print("", end="\n" if i < len(date_ranges) - 1 else "")
+        if args.only:
+            print(f"{summarize_data(start, end, args.file, args.only, args.brief)}")
+        else:
+            print(f"{title}")
+            print(f"---------------------------------------------")
+            print(f"{summarize_data(start, end, args.file, args.only, args.brief)}")
+            print("", end="\n" if i < len(date_ranges) - 1 else "")
 
 
 if __name__ == "__main__":
